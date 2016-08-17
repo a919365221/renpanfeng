@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <!-- Bottom View End-->
+
+    <!-- Surface View Start -->
+    <TextView  xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/date_id"
+        android:background="#ffff00"
+        android:layout_width="match_parent"
+        android:layout_height="30dp">
+        <!--What you want to show in SurfaceView-->
+    </TextView>

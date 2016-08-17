@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical">
+
+   <TextView
+       android:id="@+id/process"
+       android:layout_width="match_parent"
+       android:layout_height="30dp"
+       style="@style/common_text"/>
+    <TextView
+        android:id="@+id/count"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        style="@style/common_text"/>
+
+    <TextView
+        android:id="@+id/remainCount"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        style="@style/common_text"/>
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        style="@style/common_text"/>
+    <ProgressBar android:id="@+id/progress_horizontal"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+         />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/successCount"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="查询中..."/>
+            <TextView
+                android:id="@+id/resultsSpecialCount"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="查询中..."/>
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#ff0000ff"/>
+
+        <ProgressBar android:id="@+id/progress_qushi"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            />
+        <ProgressBar android:id="@+id/progress_suoliang"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="8"
+            >
+            <ListView
+                android:id="@+id/results"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                >
+            </ListView>
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#ff0000ff"/>
+            <ListView
+                android:id="@+id/resultsSpecial"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                >
+            </ListView>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1"
+            >
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:onClick="showRecentData"
+                android:text="查询日志"
+                android:layout_weight="0.4"
+                android:background="@drawable/common_b_left"
+                style="@style/common_button"
+               />
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+
+                android:text="清除日志"
+                android:layout_weight="0.4"
+                android:onClick="deleteRecent"
+                android:background="@drawable/common_b_right"
+                style="@style/common_button"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</LinearLayout>

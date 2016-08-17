@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TableLayout
+        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <TableRow android:gravity="center">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/status"
+                android:layout_weight="1"
+                android:text="状态"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/tongjitianshu"
+                android:layout_weight="1"
+                android:text="统计天数"/>
+        </TableRow>
+        <TableRow android:gravity="center">
+            <SeekBar
+                android:id="@+id/bkSeekBar"
+                android:layout_width="400dp"
+                android:layout_height="wrap_content"
+                android:background="#00ffff"/>
+        </TableRow>
+    </TableLayout >
+    <com.stock.view.HorizontalListView
+        android:id="@+id/horizon_listview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_alignParentTop="true"
+        android:layout_weight="3"/>
+</LinearLayout>
