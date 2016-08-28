@@ -37,8 +37,8 @@
 
         </activity>
         <activity
-            android:name=".ShowStock"
-            android:logo="@drawable/left"></activity>
+        android:name=".ShowStock"
+        android:logo="@drawable/left"></activity>
         <activity
             android:name=".Comment"
             android:label="@string/title_activity_comment"
@@ -49,6 +49,10 @@
             android:name=".BanKuaiLunDong"
             android:label="@string/bkld"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"></activity>
+        <activity
+            android:name=".ChaoDieActivity"
+            android:label="@string/cdg"
+            android:configChanges="orientation|keyboardHidden|screenSize"></activity>
 
     </application>
 

@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.Message;
 
 import android.os.PersistableBundle;
-import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.Menu;
@@ -29,23 +28,17 @@ import android.widget.Toast;
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 
-import org.w3c.dom.Text;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 import com.stock.bean.StockInfo;
 import com.stock.util.LogUtil;
-import com.stock.util.SimpleCache;
 import com.stock.util.StockUtil;
 
 public class MainActivity extends Activity implements View.OnClickListener{
@@ -286,7 +279,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         resultsSpecial.setAdapter(resultsSpecialArrayAdapter);
         stockUtil.init(handler);
 
-        /*ActionBar ab = getActionBar();
+        ActionBar ab = getActionBar();
         ab.setDisplayShowTitleEnabled(false);
         ab.setDisplayUseLogoEnabled(true);
         ab.setSubtitle("你懂的");
@@ -303,7 +296,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 changeWorkMode(currentMode);
                 return true;
             }
-        });*/
+        });
     }
     //是否连接WIFI
     public static boolean isWifiConnected(Context context)
@@ -478,6 +471,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     Toast.makeText(this, "没有连接wifi", Toast.LENGTH_SHORT);
                 }
                 break;
+            case R.id.cdg:
+                Intent intent1 = new Intent();
+                intent1.setClass(this,ChaoDieActivity.class);
+                startActivity(intent1);
             default:
                 break;
         }

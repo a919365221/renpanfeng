@@ -55,7 +55,7 @@ public class StockUtil {
     //http://hqdigi2.eastmoney.com/EM_Quote2010NumericApplication/CompatiblePage.aspx?Type=ZT&jsName=js_fav&fav=000545 单只股票信息查询
     private static final String TAG = StockUtil.class.getSimpleName();
     //String path = "http://hqdigi2.eastmoney.com/EM_Quote2010NumericApplication/index.aspx?type=s&sortType=C&sortRule=-1&pageSize=2000&page=1&jsName=quote_123&style=20";
-    String path = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=4000&js=var%20quote_123={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c&jsName=quote_123";
+    //String path = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=4000&js=var%20quote_123={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c&jsName=quote_123";
     private int targetCount = 7;
     // http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/002371.phtml?year=2016&jidu=1
     String stockPath = "http://money.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/%s.phtml?year=%d&jidu=%d";
@@ -87,6 +87,9 @@ public class StockUtil {
     private List<StockComment> commentsData = new ArrayList<StockComment>();
     int graph = 0;
     ArrayList<SZindex> SZIndexData;
+    public StockUtil(){
+
+    }
     public StockUtil(String path){
         this.confPath   = path;
     }
@@ -201,7 +204,7 @@ public class StockUtil {
             }else{
                 urlPath = "sz"+stockId;
             }
-            jsonData = browseUrl(String.format(this.geGuPath, urlPath));
+            jsonData =Tools.browseUrl(String.format(this.geGuPath, urlPath));
             if(jsonData == null){
                 LogUtil.i(TAG, "查询股票::" + stockId+"读网络数据超时");
                 return null;
@@ -342,7 +345,7 @@ public class StockUtil {
     private boolean getSZIndexData(){
 
         String urlDapanPath = String.format(dapanPath, days);
-        String data = browseUrl(urlDapanPath);
+        String data = Tools.browseUrl(urlDapanPath);
         String jsonData = data.substring("kline_dayqfq=".length());
         SZIndexData= new ArrayList<>();
         try{
@@ -575,6 +578,7 @@ public class StockUtil {
         LogUtil.i(TAG,"股票："+stock+"上涨次数"+upCishu+",下降次数"+downCishu+",当前价格离最高价格偏离:"+fudu+","+"股票："+stock+"当前价格："+currentPrice+"，中间最高价格:"+fengPrice);
         return pass;
     }
+
     private boolean suoliangGraph(ArrayList<StockOneDay> datas,String stock){
         float currentJiaoyiliang = 0;
         float jiaoyiliang = 0;
@@ -704,7 +708,7 @@ public class StockUtil {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            URL url = new URL(path);
+            URL url = new URL(PathInfo.stockCountPath);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(5000);
             conn.setRequestMethod("GET");
@@ -1000,7 +1004,7 @@ public class StockUtil {
         }
         String urlData = String.format(infoPath,urlPath);
 
-        String data = browseUrl(urlData);
+        String data = Tools.browseUrl(urlData);
 
 
 
@@ -1142,7 +1146,7 @@ public class StockUtil {
         String urlStr2 = String.format(path2,stockInfo.stockId);
         JSONObject jsonObject = null;
         try {
-            String data = browseUrl(urlStr);
+            String data = Tools.browseUrl(urlStr);
 
             data = data.substring(data.indexOf("_last(")+6,data.length()-1);
             LogUtil.i(TAG,"data--:"+data);
@@ -1153,7 +1157,7 @@ public class StockUtil {
             //String xj = (String)jsonObject.get("xj");
             //String syl = (String)jsonObject.get("syl");
             LogUtil.i(TAG,"股票："+stockInfo.stockId);
-            String others = browseUrl(urlStr2);
+            String others = Tools.browseUrl(urlStr2);
             //<div style=\"display:none\" id=\"indexBasicData\">(.+?)</div>
             Pattern urlPattern = Pattern.compile("<div style=\"display:none\" id=\"indexBasicData\">(.+?)</div>");
 
@@ -1197,31 +1201,5 @@ public class StockUtil {
         }
 
     }
-    public String browseUrl(String urlStr) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        String data = null;
-        try {
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(5000);
-        conn.setRequestMethod("GET");
-        conn.setReadTimeout(5000);
-        if(conn.getResponseCode() == 200) {
-            InputStream inputStream = conn.getInputStream();
-            int count = 0;
-            while ((count = inputStream.read(buffer)) > 0) {
-                baos.write(buffer, 0, count);
-            }
-            inputStream.close();
-           data = new String(baos.toByteArray(), "gb2312");
-        }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        return data;
-    }
 }

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical">
+
+   <TextView
+       android:id="@+id/process"
+       android:layout_width="match_parent"
+       android:layout_height="30dp"
+       style="@style/common_text"/>
+    <TextView
+        android:id="@+id/count"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        style="@style/common_text"/>
+
+    <TextView
+        android:id="@+id/remainCount"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        style="@style/common_text"/>
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        style="@style/common_text"/>
+    <ProgressBar android:id="@+id/progress_horizontal"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+         />
+
+    <ListView
+        android:id="@+id/results"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        />
+
+</LinearLayout>

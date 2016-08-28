@@ -7,7 +7,9 @@ public class StockInfo {
     public String stockId;
     public float pb;
     public float pe;
+    public float zongguben;
     public float liutonggu;
     public float price;
     public String info;
+    public double sanhubi;
 }
