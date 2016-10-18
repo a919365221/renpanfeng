@@ -4,4 +4,5 @@
     <string name="title_activity_comment">Comment</string>
     <string name="bkld">板块轮动</string>
     <string name="cdg">超跌股</string>
+    <string name="wudang">五档挂单分析</string>
 </resources>

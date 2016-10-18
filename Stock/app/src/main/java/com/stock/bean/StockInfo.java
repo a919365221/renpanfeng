@@ -12,4 +12,21 @@ public class StockInfo {
     public float price;
     public String info;
     public double sanhubi;
+    public boolean pass;
+    public int gudongrenshu;
+
+
+    @Override
+    public boolean equals(Object o) {
+        StockInfo t=null;
+        if(o instanceof  StockInfo){
+            t = (StockInfo)o;
+        }
+        if(t!=null){
+            return t.stockId.equals(stockId);
+        }else{
+            return false;
+        }
+
+    }
 }

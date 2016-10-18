@@ -472,9 +472,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 }
                 break;
             case R.id.cdg:
-                Intent intent1 = new Intent();
-                intent1.setClass(this,ChaoDieActivity.class);
-                startActivity(intent1);
+            Intent intent1 = new Intent();
+            intent1.setClass(this,ChaoDieActivity.class);
+            startActivity(intent1);
+            case R.id.wudong:
+                Intent intent2 = new Intent();
+                intent2.setClass(this,WuDangActivity.class);
+                startActivity(intent2);
+
             default:
                 break;
         }
@@ -520,6 +525,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
         datas.clear();
         datasSpecial.clear();
         datas_flag.clear();
+        stockUtil.stocksSuoliang.clear();
+        stockUtil.stocksQush.clear();
         resultsSpecialCount.setText("");
         resultArrayAdapter.notifyDataSetChanged();
         resultsSpecialArrayAdapter.notifyDataSetChanged();

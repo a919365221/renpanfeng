@@ -11,9 +11,9 @@ public class SZindex {
 
 
     public String date;
-    float bodyLenth;
-    float kaipan;
-    float shoupan;
+    public float bodyLenth;
+    public float kaipan;
+    public float shoupan;
 
     @Override
     public String toString() {

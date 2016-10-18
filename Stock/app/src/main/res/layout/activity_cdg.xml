@@ -30,11 +30,18 @@
         android:layout_height="5dp"
          />
 
-    <ListView
-        android:id="@+id/results"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        />
+ <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:orientation="horizontal">
+  <ListView
+      android:id="@+id/results"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_weight="1"
+      />
+
+ </LinearLayout>
+
 
 </LinearLayout>

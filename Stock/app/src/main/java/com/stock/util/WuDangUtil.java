@@ -2,12 +2,12 @@ package com.stock.util;
 
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 
 import com.stock.bean.CDGStock;
-
 import com.stock.bean.StockInfo;
-import com.stock.bean.StockOneDay;
-import com.stock.bean.StockOneMonth;
+import com.stock.bean.StockWuDang;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +22,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -30,16 +32,47 @@ import java.util.regex.Pattern;
 /**
  * Created by Administrator on 2016/8/21.
  */
-public class CDGUtil {
+public class WuDangUtil {
     private Handler handler;
-    public HashMap<String,CDGStock> allStocks;
+    public HashMap<String,StockWuDang> allStocks;
     private ExecutorService executorService;
-    private String TAG = "CDGUtil";
-    private String monthPath = "http://api.finance.ifeng.com/akmonthly/?code=%s&type=last";
+    private String TAG = "WuDangUtil";
+    private String wuDangPath = "http://d.10jqka.com.cn/v2/fiverange/hs_%s/last.js";
     private int months = 10;
-    public CDGUtil(Handler handler){
+    private HashMap<String,Integer> hashMap = new HashMap();
+    public WuDangUtil(Handler handler){
         this.handler = handler;
         allStocks = new HashMap<>();
+        hashMap.put("24",5);
+        hashMap.put("25",5);
+
+        hashMap.put("26",6);
+        hashMap.put("27",6);
+
+        hashMap.put("28",7);
+        hashMap.put("29",7);
+
+        hashMap.put("150",8);
+        hashMap.put("151",8);
+
+        hashMap.put("154",9);
+        hashMap.put("155",9);
+
+        hashMap.put("30",4);
+        hashMap.put("31",4);
+
+        hashMap.put("32",3);
+        hashMap.put("33",3);
+
+        hashMap.put("34",2);
+        hashMap.put("35",2);
+
+        hashMap.put("152",1);
+        hashMap.put("153",1);
+
+        hashMap.put("156",0);
+        hashMap.put("157",0);
+
     }
     public void start(){
         getAllStocks();
@@ -88,11 +121,11 @@ public class CDGUtil {
                     for(int i= 0;i<jsonArray.length();i++){
                         String lineStock = jsonArray.getString(i);
                         int start  = lineStock.indexOf(",")+1;
-                        CDGStock cdgStock = new CDGStock();
+                        StockWuDang stockWuDang = new StockWuDang();
                         String []tmp = lineStock.split(",");
-                        cdgStock.stockName = tmp[2];
-                        cdgStock.stockId = tmp[1];
-                        allStocks.put(tmp[1],cdgStock);
+                        stockWuDang.stockName = tmp[2];
+                        stockWuDang.stockInfo.stockId = tmp[1];
+                        allStocks.put(tmp[1],stockWuDang);
                         //llStocks.add(lineStock.substring(start, start + 6));
 
                     }
@@ -120,10 +153,16 @@ public class CDGUtil {
         @Override
         public void run() {
            //获取数据
-            ArrayList<StockOneMonth> datas =  readStock2(stockId);
+            StockWuDang datas =  readStock2(stockId);
+            boolean pass = false;
             //分析k线
-            allStocks.get(stockId).stockOneMonths =datas;
-            boolean pass = analyzeOneStock(datas,stockId);
+            if(datas.dataValid == false){
+                LogUtil.i(TAG,"股票"+stockId+"数据无效");
+
+            }else{
+               pass = analyzeOneStock(datas,stockId);
+            }
+
             int messageId = (int)Thread.currentThread().getId()%10;
             Message message= handler.obtainMessage(10+messageId);
             LogUtil.i(TAG,"发送message"+message);
@@ -137,110 +176,147 @@ public class CDGUtil {
         }
     }
 
-    private boolean analyzeOneStock(ArrayList<StockOneMonth> datas, String stock){
+    private boolean analyzeOneStock(StockWuDang datas, String stock){
         if(datas == null){
-            LogUtil.i(TAG,"股票："+stock+"，月线数据异常");
+            LogUtil.i(TAG,"股票："+stock+"，五档数据异常");
             return false;
         }else{
-            return chaodieguGraph(datas,stock);
+            return wuDangGraph(datas,stock);
         }
 
 
     }
-    private boolean chaodieguGraph(ArrayList<StockOneMonth> datas,String stock){
+    private boolean wuDangGraph(StockWuDang datas,String stock){
         int m = 0;
-        //找到该股最高价，最低价，当前价
-        double max = 0;
-        double min = 1000;
-        double current = 0;
-        for(StockOneMonth stockOneMonth:datas){
-            if(stockOneMonth.zuigaojia>max){
-                max = stockOneMonth.zuigaojia;
+
+        StockInfo tmp = datas.stockInfo;
+        getStockInfo(tmp);
+
+        if((tmp.liutonggu*tmp.price<70)&& tmp.pb>0  && tmp.pe>0 && tmp.pb<7){// tmp.price<20 && tmp.liutonggu<6&& tmp.pb< 4 && tmp.pb>0  && tmp.pe>0
+            Tools.getStockSanhubi(tmp);
+            /*if(tmp.sanhubi>=1.5){
+                return true;
+            }else{
+                return false;
+            }*/
+
+            int allguadanshuliang = 0;
+            for(int i=0;i<datas.cs10.length;i++){
+                allguadanshuliang += datas.cs10[i];
             }
-            if(stockOneMonth.zuidijia<min){
-                min = stockOneMonth.zuidijia;
+            allguadanshuliang  = allguadanshuliang/100;
+            LogUtil.i(TAG,"股票"+stock+"10档共有"+allguadanshuliang+"手挂单");
+            //10挡股数除以10000.比如10000手，会得到1.猜测6亿流通股有1万手挂单的话，这是垃圾股。
+            //认为 6亿流通股 <= 0.2挂单.
+            if(allguadanshuliang == 0){
+                return false;
+            }
+            float o  = allguadanshuliang/(10000*1.0f);
+            LogUtil.i(TAG,"股票比："+tmp.liutonggu/o);
+            if(tmp.liutonggu/o>40){//6亿流通股 平均时刻每当小于200手挂单。
+                return true;
             }
         }
+        return false;
 
-        StockOneMonth thisMonth = datas.get(datas.size()-1);
-        current = thisMonth.shoupanjia;
-        LogUtil.i(TAG,"股票"+stock+",最高价:"+max+",最低价:"+min+"当前价:"+current);
-        double off = ((current -min)/min);
-        LogUtil.i(TAG,"股票离最低价偏离:"+off);
-        if(current >= min && off < 0.15){
-            allStocks.get(stock).stockInfo = new StockInfo();
-            StockInfo tmp = allStocks.get(stock).stockInfo;
-            tmp.stockId = stock;
-            getStockInfo(tmp);
-            LogUtil.i(TAG,"股票"+stock+",最高价:"+max+",最低价:"+min+"当前价:"+current);
-            if((tmp.liutonggu*tmp.price<60)&& tmp.pb>0  && tmp.pe>0 && tmp.pb<5){// tmp.price<20 && tmp.liutonggu<6&& tmp.pb< 4 && tmp.pb>0  && tmp.pe>0
-                Tools.getStockSanhubi(tmp);
-                if(tmp.sanhubi>=1.5){
-                    return true;
-                }else{
-                    return false;
-                }
-
-            }
-            return false;
-        }else{
-            return false;
-        }
 
     }
-    private ArrayList<StockOneMonth> readStock2(String stockId)
+    private StockWuDang readStock2(String stockId)
     {
+        StockWuDang stockWuDang = allStocks.get(stockId);
         String jsonData = "";
         if (stockId.charAt(0) == '3')
-            return null;
-        ArrayList<StockOneMonth>  results = new ArrayList<>(); //(ArrayList)this.cache.get(stockId);
-
-        String urlPath;
+            return stockWuDang;
         if (true)
         {
-            if (stockId.charAt(0) == '6'){
-                urlPath = "sh"+stockId;
-            }else{
-                urlPath = "sz"+stockId;
-            }
-            jsonData = Tools.browseUrl(String.format(this.monthPath, urlPath));
+            jsonData = Tools.browseUrl(String.format(this.wuDangPath, stockId));
             if(jsonData == null){
                 LogUtil.i(TAG, "查询股票::" + stockId+"读网络数据超时");
-                return null;
+                return stockWuDang;
             }
+            int bg = jsonData.indexOf("({")+1;
+            int end = jsonData.lastIndexOf("})")+1;
+            jsonData = jsonData.substring(bg,end);
             try
             {
 
-                JSONArray localJSONArray1 = (JSONArray)new JSONObject(jsonData).get("record");
-                int i = localJSONArray1.length();
+                JSONObject local1 = (JSONObject)new JSONObject(jsonData).get("items");
 
-                if(i<this.months){
-                    return null;
+                Iterator<Map.Entry<String,Integer>> iter = hashMap.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry<String,Integer> entry =  iter.next();
+                    String key = entry.getKey();
+                    int val = entry.getValue();
+                    float res = 0;
+                    String m = local1.getString(key);
+                    if(TextUtils.isEmpty(m)){
+                        res = 0;
+                    }else{
+                        res = Float.parseFloat(m);
+                    }
+                    int tmp = Integer.parseInt(key);
+                    if(tmp%2==0){
+                        stockWuDang.s10[val] = res;
+                    }else{
+                        stockWuDang.cs10[val] = res;
+                    }
+                }
+
+                String p = local1.getString("6");
+                if (TextUtils.isEmpty(p)) {
+                    stockWuDang.stockInfo.price = 0;
+                }else{
+                    stockWuDang.stockInfo.price = Float.parseFloat(p);
                 }
 
 
-                for(int j = 0; j<this.months;j++){
-                    JSONArray localJSONArray2 = localJSONArray1.getJSONArray(j + (i - this.months));
-                    StockOneMonth localStockOneMonth = new StockOneMonth();
-                    localStockOneMonth.date = localJSONArray2.getString(0);
-                    localStockOneMonth.kaipanjia = Float.valueOf(localJSONArray2.getString(1)).floatValue();
-                    localStockOneMonth.shoupanjia = Float.valueOf(localJSONArray2.getString(3)).floatValue();
-                    localStockOneMonth.zuigaojia = Float.valueOf(localJSONArray2.getString(2)).floatValue();
-                    localStockOneMonth.zuidijia = Float.valueOf(localJSONArray2.getString(4)).floatValue();
-                    localStockOneMonth.jiaoyiliang = Float.valueOf(localJSONArray2.getString(5)).floatValue();
-                    results.add(localStockOneMonth);
+                /*Iterator<String> keys = local1.keys();
+
+                String key;
+                int i=0;
+
+                if(keys.hasNext()){
+                    i++;
+                    key = keys.next();
+                    if(i==21){
+                        stockWuDang.stockInfo.price = Float.parseFloat(local1.getString(key));
+                    }else{
+                        if(i%2==0){
+                            //量 i 2 4
+                            String liang = local1.getString(key);
+                            if(TextUtils.isEmpty(liang)){
+                                stockWuDang.cs10[i/2-1] = 0;
+                            }else{
+                                stockWuDang.cs10[i/2-1] = Integer.parseInt(liang);
+                            }
+
+                        }else{
+                            //价 i 1 2
+                            String jia = local1.getString(key);
+                            if(TextUtils.isEmpty(jia)){
+                                stockWuDang.s10[i/2] = 0;
+                            }else{
+                                stockWuDang.s10[i/2] = Float.parseFloat(jia);
+                            }
+
+                        }
+                    }
                 }
+                */
+
+                stockWuDang.dataValid = true;
+
             }
             catch (Exception localException)
             {
                 LogUtil.i(TAG, "查询股票::" + stockId+"readStock2异常");
                 localException.printStackTrace();
-                return null;
+                return stockWuDang;
             }
             //this.cache.put(stockId, results);
         }
 
-        return results;
+        return stockWuDang;
     }
 
     public void getStockInfo(StockInfo stockInfo){
@@ -286,15 +362,16 @@ public class CDGUtil {
                 stockInfo.zongguben = Float.parseFloat(mm[0]);
                 //float price = Float.parseFloat(xj);
                 float price = 0.0f;
-
-                CDGStock cdgStock = allStocks.get(stockInfo.stockId);
-                StockOneMonth stockOneMonth = cdgStock.stockOneMonths.get(cdgStock.stockOneMonths.size()-1);
-                stockInfo.price  = stockOneMonth.shoupanjia;
                 float jingzichan =  Float.parseFloat(mm[2]);
                 price = stockInfo.price;
                 LogUtil.i(TAG,"股票："+stockInfo.stockId+",股价:"+price+",净资产:"+jingzichan+",流通股"+stockInfo.liutonggu+"亿"+",总股本"+stockInfo.zongguben);
                 stockInfo.pb = price/jingzichan;
-                stockInfo.pb = Float.parseFloat(sjl);
+                if(TextUtils.isEmpty(sjl)){
+                    stockInfo.pb = -1;
+                }else{
+                    stockInfo.pb = Float.parseFloat(sjl);
+                }
+
                 break;
             }
             if(syl.equals("")){

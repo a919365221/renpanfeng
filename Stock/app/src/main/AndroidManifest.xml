@@ -53,7 +53,10 @@
             android:name=".ChaoDieActivity"
             android:label="@string/cdg"
             android:configChanges="orientation|keyboardHidden|screenSize"></activity>
-
+        <activity
+            android:name=".WuDangActivity"
+            android:label="@string/wudang"
+            android:configChanges="orientation|keyboardHidden|screenSize"></activity>
     </application>
 
 

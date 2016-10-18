@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="selectModes">
-        <item>趋势图形</item>
+
+        <item>吸筹图形</item>
         <item>涨停回调图形</item>
         <item>横盘图形</item>
         <item>缩量图形</item>
+        <item>趋势图形</item>
+        <item>换手率低的小市值</item>
+        <item>小市值</item>
+        <item>五档挂单观察</item>
     </string-array>
 </resources>

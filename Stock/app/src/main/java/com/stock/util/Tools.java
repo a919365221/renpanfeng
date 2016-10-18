@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public class Tools {
 
-
+    private static String TAG = "Tools";
     public static String browseUrl(String urlStr) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
@@ -74,5 +74,33 @@ public class Tools {
         }
 
         return data;
+    }
+    //<td>股东人数（户）</td><td>17212</td><td>12990</td>
+    static Pattern sanhubiPattern = Pattern.compile("<td>股东人数（户）</td><td>(.+?)</td>");
+    public static void getStockSanhubi(StockInfo stockInfo){
+        String path = "http://eq.10jqka.com.cn/newf10/f10JgccGdrs.php?code=%s";
+        String urlStr = String.format(path,stockInfo.stockId);
+        try {
+            String data = Tools.browseUrl2(urlStr);
+            //LogUtil.i(TAG,"股票：renpanfeng"+stockInfo.stockId+data.length());
+            Matcher matcher = sanhubiPattern.matcher(data);
+            boolean isFind = matcher.find();
+            //LogUtil.i(TAG,"股票："+stockInfo.stockId+",xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+            while(isFind){
+
+                String gudongshu = matcher.group(1);
+                int iGudongshu = Integer.parseInt(gudongshu);
+                LogUtil.i(TAG,"股票："+stockInfo.stockId+",股东人数"+iGudongshu);
+                stockInfo.sanhubi = stockInfo.liutonggu/(iGudongshu*1.0/10000);
+                stockInfo.gudongrenshu = iGudongshu;
+                LogUtil.i(TAG,"股票："+stockInfo.stockId+",总股本/股东人数"+stockInfo.sanhubi);
+                break;
+            }
+        } catch (Exception e) {
+
+            LogUtil.i(TAG,"getStockSanhubi null:"+stockInfo.stockId );
+
+            e.printStackTrace();
+        }
     }
 }

@@ -29,8 +29,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,10 +79,12 @@ public class StockUtil {
     public SimpleCache<String,ArrayList<StockOneDay>> cache ;
     public ArrayList<StockInfo> stocksQush = new ArrayList<StockInfo>();
     public ArrayList<StockInfo> stocksSuoliang = new ArrayList<StockInfo>();
+    public ArrayList<Future> stocksQushFuture = new ArrayList<Future>();
+    public ArrayList<Future> stocksSuoliangFuture = new ArrayList<Future>();
     private String confPath;
     //private String[] excudeKeys   = {"减持","质押","暂停上市","增发","*ST","退市","解禁","重组","预亏","上市流通","限售股","大宗交易"};
     private String[] excudeKeys   = {"暂停上市","退市","预亏","上市流通","限售股","*ST","增发","大宗交易","期权","持股计划"};
-
+    private String[] excudeKeys2   = {"暂停上市","退市"};
     public HashMap<String,String>  stockName;
     private float zhangditing = 0.09f;
     private Object lock = new Object();
@@ -188,6 +193,7 @@ public class StockUtil {
         return records;
     }
 
+
     private ArrayList<StockOneDay> readStock2(String stockId)
     {
         String jsonData = "";
@@ -229,6 +235,7 @@ public class StockUtil {
                     localStockOneDay.zuigaojia = Float.valueOf(localJSONArray2.getString(2)).floatValue();
                     localStockOneDay.zuidijia = Float.valueOf(localJSONArray2.getString(4)).floatValue();
                     localStockOneDay.jiaoyiliang = Float.valueOf(localJSONArray2.getString(5)).floatValue();
+                    localStockOneDay.huanshoulv = Float.valueOf(localJSONArray2.getString(14)).floatValue();
                     results.add(localStockOneDay);
                 }
             }
@@ -256,15 +263,18 @@ public class StockUtil {
             boolean pass = false;
             LogUtil.i(TAG, "分析：" + stockId);
 
-            //获取数据
+            int[] flags ;
+
             ArrayList datas = readStock2(stockId);
-            int[] flags = new int[]{0,0};//0 huangjinkeng 1 suoliang
+            flags = new int[]{0,0};//0 huangjinkeng 1 suoliang
             if(datas == null){
                 pass = false;
             }else{
 
                 pass = analyzeOneStock(datas,flags,stockId);
             }
+
+
 
             /*try {
                 //Thread.sleep(100);
@@ -430,6 +440,25 @@ public class StockUtil {
         return records;
 
     }
+    private boolean xichouGraph(ArrayList<StockOneDay> datas,String stock){
+
+        boolean pass = false;
+        int i = 0;
+        int cishu = 0;
+        for(i = 0;i<datas.size();i++){
+            StockOneDay stockOneDay = datas.get(i);
+            float bodylength = (stockOneDay.shoupanjia-stockOneDay.kaipanjia)/stockOneDay.kaipanjia;
+            SZindex sZindex = SZIndexData.get(i);
+            if(bodylength>=sZindex.bodyLenth){
+                cishu++;
+            }
+        }
+        if(cishu>=(days-days/3)){
+            pass = true;
+            LogUtil.i(TAG,"股票："+stock+",具有抗跌趋势");
+        }
+        return pass;
+    }
     private boolean quShiGraph(ArrayList<StockOneDay> datas,String stock){
         int cishu = 0;
         float rise = 0;
@@ -448,6 +477,49 @@ public class StockUtil {
             pass = true;
             LogUtil.i(TAG,"股票："+stock+",具有连续上涨趋势");
         }
+        return pass;
+    }
+    private boolean huanshoulvGraph(ArrayList<StockOneDay> datas,String stock){
+        float price = 0;
+        float rise = 0;
+        boolean pass = false;
+
+        int trCount = datas.size();
+        StockOneDay cu = null;
+        cu = datas.get(trCount-1);
+        for(int i=0;i<trCount;i++){
+            StockOneDay oneDay = datas.get(i);
+
+            rise = rise+oneDay.huanshoulv;
+            price = price + oneDay.shoupanjia;
+
+        }
+
+        if(rise<days && price<(20*days)&&(cu.zuigaojia-cu.zuidijia>0.02)){
+            LogUtil.i(TAG,"股票："+stock+"在天数"+days+"里具有累计低换手率");
+            pass = true;
+        }
+
+        return pass;
+    }
+    private boolean xiaoshizhiGraph(ArrayList<StockOneDay> datas,String stock){
+        float price = 0;
+        float rise = 0;
+        boolean pass = false;
+
+        int trCount = datas.size();
+        StockOneDay cu = null;
+        cu = datas.get(trCount-1);
+        for(int i=0;i<trCount;i++){
+            StockOneDay oneDay = datas.get(i);
+            price = price + oneDay.shoupanjia;
+
+        }
+
+        if( price<(20*days)&&(cu.zuigaojia-cu.zuidijia>0.02)){
+            pass = true;
+        }
+
         return pass;
     }
     private boolean zhangtingHuitiaoGraph(ArrayList<StockOneDay> datas,String stock){
@@ -648,7 +720,7 @@ public class StockUtil {
         }
 
         if(graph == 0){
-            pass = quShiGraph(datas,stock);
+            pass = xichouGraph(datas,stock);
             if(pass){
 
                 flags[0] = 1;
@@ -671,6 +743,27 @@ public class StockUtil {
 
         if(graph == 3){
             pass = suoliangGraph(datas,stock);
+            if(pass){
+
+                flags[0] = 1;
+            }
+        }
+        if(graph == 4){
+            pass = quShiGraph(datas,stock);
+            if(pass){
+
+                flags[0] = 1;
+            }
+        }
+        if(graph == 5){
+            pass = huanshoulvGraph(datas,stock);
+            if(pass){
+
+                flags[0] = 1;
+            }
+        }
+        if(graph == 6){
+            pass = xiaoshizhiGraph(datas,stock);
             if(pass){
 
                 flags[0] = 1;
@@ -1013,7 +1106,14 @@ public class StockUtil {
         if (data !=null ) {
             data = convertUnicode(data);
             LogUtil.i(TAG,"股票:"+stockInfo.stockId+",data.length:" +data.length());
-            for(String key: excudeKeys){
+            String[] excudeKeysTmp;
+            if(graph == 6){
+                excudeKeysTmp = excudeKeys2;
+            }else{
+                excudeKeysTmp = excudeKeys;
+            }
+
+            for(String key: excudeKeysTmp){
                 if(data.contains(key)){
 
                     stockInfo.info += key+" ";
@@ -1031,31 +1131,60 @@ public class StockUtil {
     }
     class MyThread2 extends Thread{
         int type ;
+        ArrayList<Future> target;
         @Override
         public void run() {
             ArrayList<StockInfo> stocks = null;
             if (type == 0) {
                 stocks = stocksQush;
+                stocksQushFuture.clear();
+                target = stocksQushFuture;
             }else{
                 stocks = stocksSuoliang;
+                stocksSuoliangFuture.clear();
+                target = stocksSuoliangFuture;
             }
+
             Iterator<StockInfo> sListIterator = stocks.iterator();
             while(sListIterator.hasNext()){
-                StockInfo stockInfo = sListIterator.next();
-                if(isStockPass(stockInfo)){
+                final StockInfo stockInfo = sListIterator.next();
+                Future<StockInfo> f = executorService.submit(new Callable() {
+                    @Override
+                    public StockInfo call() throws Exception {
+                        boolean res = isStockPass(stockInfo);
+                        stockInfo.pass = res;
+                        return stockInfo;
+                    }
+                });
+                target.add(f);
 
-                }else{
-                    LogUtil.i(TAG,"股票:"+stockInfo.stockId+"有问题关键字"+stockInfo.info);
-                    sListIterator.remove();
-                }
-                if(type == 0){
-                    Message message = handler.obtainMessage(20);
-                    handler.sendMessage(message);
-                }else{
-                    Message message = handler.obtainMessage(21);
-                    handler.sendMessage(message);
-                }
             }
+            try {
+                for(int i=0;i<target.size();i++){
+                    Future<StockInfo> c = target.get(i);
+                    StockInfo d = c.get();
+                        if(d.pass){
+
+                        }else{
+                            stocks.remove(d);
+                            LogUtil.i(TAG,"股票:"+d.stockId+"有问题关键字"+d.info);
+
+                        }
+                    if(type == 0){
+                        Message message = handler.obtainMessage(20);
+                        handler.sendMessage(message);
+                    }else{
+                        Message message = handler.obtainMessage(21);
+                        handler.sendMessage(message);
+                    }
+
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
             if(type == 0){
                 Message message = handler.obtainMessage(6);
                 handler.sendMessage(message);
@@ -1100,10 +1229,29 @@ public class StockUtil {
                 Iterator<StockInfo> sListIterator = stocks.iterator();
                 while(sListIterator.hasNext()) {
                     StockInfo stockInfo = sListIterator.next();
-                    if (stockInfo.pe>50  || stockInfo.pe<1.0 || stockInfo.pb<1.0 || stockInfo.pb>10 || stockInfo.price>40 || stockInfo.price < 5
-                            || (stockInfo.liutonggu * stockInfo.price > 400)) {
-                        sListIterator.remove();
+
+                    if(graph == 6){
+                        if (stockInfo.pe>300  || stockInfo.pe<1.0 || stockInfo.pb<1.0 || stockInfo.pb>10 || stockInfo.price>40 || stockInfo.price < 4
+                                || (stockInfo.liutonggu * stockInfo.price > 400)) {
+                            sListIterator.remove();
+                        }else{
+                            Tools.getStockSanhubi(stockInfo);
+                            if(stockInfo.sanhubi<=1.5){
+                                sListIterator.remove();
+                            }
+                        }
+                    }else{
+                        if (stockInfo.pe>300  || stockInfo.pe<1.0 || stockInfo.pb<1.0 || stockInfo.pb>10 || stockInfo.price>40 || stockInfo.price < 4
+                                || (stockInfo.liutonggu * stockInfo.price >50)) {
+                            sListIterator.remove();
+                        }else{
+                            /*Tools.getStockSanhubi(stockInfo);
+                            if(stockInfo.sanhubi<=1.5){
+                                sListIterator.remove();
+                            }*/
+                        }
                     }
+
 
                 }
 

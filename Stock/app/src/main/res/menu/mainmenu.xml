@@ -16,4 +16,8 @@
         android:id="@+id/cdg"
         android:title="超跌股">
     </item>
+    <item
+        android:id="@+id/wudong"
+        android:title="五档挂单分析">
+    </item>
 </menu>
